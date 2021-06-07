@@ -7,7 +7,7 @@ Created on Fri Jun  4 15:22:56 2021
 """
 
 ## Prep console and clear variables ##
-%clear
+# %clear
 from IPython import get_ipython
 get_ipython().magic('reset -sf')
 #######################################
@@ -15,26 +15,41 @@ get_ipython().magic('reset -sf')
 import requests
 from bs4 import BeautifulSoup
 
-URL = 'https://www.coursereport.com/schools/general-assembly#reviews'
-page = requests.get(URL)
+# Define the process by which we retrieve the page data.
+def getData(URL):
+    page = requests.get(URL)
+    soup = BeautifulSoup(page.content, 'html.parser')
 
-soup = BeautifulSoup(page.content, 'html.parser')
-
-# Check for success
-f = open("soup_output.html", "a")
-f.write(str(soup))
-f.close()
+    # Check for success
+    # f = open("soup_output.html", "a")
+    # f.write(str(soup))
+    # f.close()
 
 
-results = soup.find_all("ul", class_="review course-card")
+    results = soup.find_all("ul", class_="review course-card")
+    soup2 = BeautifulSoup(str(results), 'html.parser')
+    results2 = soup2.find_all("div", class_="read-more")
+    soup3 = BeautifulSoup(str(results2), 'html.parser')
+    reviews = soup3.get_text()
+    # print(results)
+    return reviews
 
-soup2 = BeautifulSoup(str(results), 'html.parser')
+# Scrape the webpages
+reviews_all = []
+i = 1
+n = 1
+while True:
+    data = getData(f'https://www.coursereport.com/schools/general-assembly?filter_by=default&amp;page={i}&amp;sort_by=default#reviews')
+    i=i+1
+    if data == []:
+        break
+    if data == 
+    print(f'Page No:     {n}')
+    reviews_all.append(data)
+    n = n+1
 
-results2 = soup2.find_all("div", class_="read-more")
 
-soup3 = BeautifulSoup(str(results2), 'html.parser')
-reviews = soup3.get_text()
-# print(results)
+
 
 # Text Preprocessing
 from nltk.corpus import stopwords
@@ -48,7 +63,7 @@ stop_words_ext = ['ga', 'go', 'bootcamp', 'instructor', 'flag', 'inappopriate']
 def preprocess(text):
     
     #regular expression keeping only letters - more on them later
-    letters_only_text = re.sub("[^a-zA-Z]", " ", reviews)
+    letters_only_text = re.sub("[^a-zA-Z]", " ", reviews_all)
 
     # convert to lower case and split into words -> convert string into list ( 'hello world' -> ['hello', 'world'])
     words = letters_only_text.lower().split()
@@ -78,7 +93,7 @@ def preprocess(text):
     return " ".join(stemmed_words2)
 
 
-cleaned_reviews = preprocess(reviews)    
+cleaned_reviews = preprocess(reviews_all)    
 
 word_tokens = word_tokenize(cleaned_reviews) #converts into individual words
 
@@ -108,3 +123,5 @@ plt.axis("off")
 plt.tight_layout(pad = 0) 
   
 plt.show()
+        
+        
