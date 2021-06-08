@@ -20,35 +20,37 @@ def getData(URL):
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, 'html.parser')
 
-    # Check for success
-    # f = open("soup_output.html", "a")
-    # f.write(str(soup))
-    # f.close()
-
-
     results = soup.find_all("ul", class_="review course-card")
     soup2 = BeautifulSoup(str(results), 'html.parser')
     results2 = soup2.find_all("div", class_="read-more")
     soup3 = BeautifulSoup(str(results2), 'html.parser')
     reviews = soup3.get_text()
     # print(results)
-    return reviews
+    if reviews == None:
+        return []
+    else:
+        return reviews
+
 
 # Scrape the webpages
 reviews_all = []
-i = 1
-n = 1
+i = 46 #Don't start at 0 as server gives same page at 0 or 1.
 while True:
     data = getData(f'https://www.coursereport.com/schools/general-assembly?filter_by=default&amp;page={i}&amp;sort_by=default#reviews')
-    i=i+1
-    if data == []:
+    if data != '[]':
+        
+        print(f'Page No:     {i}')
+        reviews_all.append(data)
+        i= i +1 
+            # Should be no more than 50 pages.
+    else:
+        print("Review Scraping Complete.")
         break
-    if data == 
-    print(f'Page No:     {n}')
-    reviews_all.append(data)
-    n = n+1
 
-
+# Write all scraped data to file.
+f = open("scraped_reviews.txt", "a")
+f.write(str(reviews_all))
+f.close()
 
 
 # Text Preprocessing
@@ -57,13 +59,14 @@ from nltk.tokenize import word_tokenize
 import re
 from nltk.stem import PorterStemmer
 stop_words = set(stopwords.words('english'))
-stop_words_ext = ['ga', 'go', 'bootcamp', 'instructor', 'flag', 'inappopriate']
+stop_words_ext = ['ga', 'go', 'bootcamp', 'instructor', 'review', 'helpful', 'flag', 'inappropriate', 'xa', 'General', 'Assembly']
 
 
 def preprocess(text):
     
     #regular expression keeping only letters - more on them later
-    letters_only_text = re.sub("[^a-zA-Z]", " ", reviews_all)
+    letters_only_text = re.sub("[^a-zA-Z]", " ", text)
+    letters_only_text  = re.sub("'", "", letters_only_text)
 
     # convert to lower case and split into words -> convert string into list ( 'hello world' -> ['hello', 'world'])
     words = letters_only_text.lower().split()
@@ -73,8 +76,11 @@ def preprocess(text):
     
     # remove stopwords
     for word in words:
-        if word not in stop_words:
+        if word not in stop_words and word not in stop_words_ext:
             cleaned_words.append(word)
+            
+    cleaned_words = [i.replace("'", "") for i in cleaned_words]      
+    return cleaned_words
     
     
     # stemm or lemmatise words
@@ -93,28 +99,22 @@ def preprocess(text):
     return " ".join(stemmed_words2)
 
 
+
+reviews_all = str(reviews_all)
 cleaned_reviews = preprocess(reviews_all)    
 
-word_tokens = word_tokenize(cleaned_reviews) #converts into individual words
+word_tokens = word_tokenize(str(cleaned_reviews)) #converts into individual words
 
+number_of_words = len(word_tokens)
+# print(number_of_words)
 
-from nltk.util import ngrams, bigrams, trigrams
-from collections import Counter
-#splitting sentence into bigrams and trigrams
-# print(list(bigrams(filtered_sentence)))
-# print(list(trigrams(filtered_sentence)))
-n_gram = 1 #bi-grams or 2 words 
-n_gram_dic = dict(Counter(ngrams(str(cleaned_reviews).split(), n_gram)))
-print(n_gram_dic)
-
-#creating a dictionary that shows occurances of n-grams in text
 
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
 wordcloud = WordCloud(width = 700, height = 700, 
                 background_color ='white', 
-                min_font_size = 10).generate(str(cleaned_reviews) )
+                min_font_size = 10).generate(str(word_tokens) )
   
 # plot the WordCloud image                        
 plt.figure(figsize = (10, 10), facecolor = None) 
