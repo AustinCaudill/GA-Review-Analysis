@@ -33,10 +33,13 @@ def getData(URL):
 
 
 # Scrape the webpages
+import time
+
 reviews_all = []
-i = 46 #Don't start at 0 as server gives same page at 0 or 1.
+i = 1 #Don't start at 0 as server gives same page at 0 or 1.
 while True:
     data = getData(f'https://www.coursereport.com/schools/general-assembly?filter_by=default&amp;page={i}&amp;sort_by=default#reviews')
+    time.sleep(2) # Wait 60 seconds between requests so as not to annoy the server.
     if data != '[]':
         
         print(f'Page No:     {i}')
@@ -59,7 +62,7 @@ from nltk.tokenize import word_tokenize
 import re
 from nltk.stem import PorterStemmer
 stop_words = set(stopwords.words('english'))
-stop_words_ext = ['ga', 'go', 'bootcamp', 'instructor', 'review', 'helpful', 'flag', 'inappropriate', 'xa', 'General', 'Assembly']
+stop_words_ext = ['ga', 'go', 'bootcamp', 'instructor', 'review', 'helpful', 'flag', 'inappropriate', 'xa', 'general', 'assembly', 'course', 'class', 'n','nthis', 'student', 'time', 'program'] # custom word exclusion list.
 
 
 def preprocess(text):
@@ -106,7 +109,7 @@ cleaned_reviews = preprocess(reviews_all)
 word_tokens = word_tokenize(str(cleaned_reviews)) #converts into individual words
 
 number_of_words = len(word_tokens)
-# print(number_of_words)
+print(number_of_words)
 
 
 from wordcloud import WordCloud
